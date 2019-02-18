@@ -7,4 +7,7 @@ selectivity_list = [
     [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 1], [0, 0, 0]
 ]
 
-size = 6
+n_columns = 6
+n_rows = 6
+n_queries = 3
+n_dimensions = 3
