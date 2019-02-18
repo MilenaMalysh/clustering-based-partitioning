@@ -5,7 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors
 
-size = 6
+from cost_models.hdd_based import get_cost_per_query
+from temp_input_data import size, selectivity_list
 
 
 def draw(data):
@@ -17,10 +18,14 @@ def draw(data):
              for i in range(clusters_amount)]
 
     cmap = colors.ListedColormap(color)
-    norm = colors.BoundaryNorm(range(clusters_amount), cmap.N)
+    norm = colors.BoundaryNorm(range(-1, clusters_amount), cmap.N)
 
     fig, ax = plt.subplots()
     ax.imshow(data, cmap=cmap, norm=norm)
+
+    for y in range(size):
+        for x in range(size):
+            plt.text(x, y, data.flatten()[y * size + x], color="white", fontsize=20)
 
     ax.grid(which='major', axis='both', linestyle='-', color='k', linewidth=2)
     ax.set_xticks(np.arange(-.5, size))
@@ -32,19 +37,13 @@ def draw(data):
 
 
 def main():
-    X = np.array([
-        [1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0],
-        [1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0],
-        [1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 1], [0, 0, 0],
-        [1, 1, 0], [1, 1, 0], [0, 1, 0], [0, 1, 1], [0, 0, 1], [0, 0, 0],
-        [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 1], [0, 0, 0],
-        [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 1], [0, 0, 0]
-        ])
-    clustering = DBSCAN(eps=0.1, min_samples=3).fit(X)
-    # clustering = KMeans(7).fit(X)
+    # clustering = DBSCAN(eps=0.1, min_samples=3).fit(np.array(selectivity_list))
+    clustering = KMeans(7).fit(np.array(selectivity_list))
 
     draw(clustering.labels_)
     print(clustering.labels_)
+    print(sum([get_cost_per_query(query_idx, clustering.labels_) for query_idx in
+               range(len(selectivity_list[0]))]))
 
 
 if __name__ == "__main__":
