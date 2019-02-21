@@ -1,9 +1,7 @@
 import math
 
-from temp_input_data import selectivity_list
 
-
-def get_cost_per_query_per_partition(partition_size, referenced_partiotions_size):
+def get_cost_per_query_per_partition(selectivity_list, partition_size, referenced_partiotions_size):
     buffer_size = 8 * 1024 * 1024
     block_size = 8 * 1024
     seek_time = 0.008
