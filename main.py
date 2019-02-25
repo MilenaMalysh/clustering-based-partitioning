@@ -24,6 +24,7 @@ def draw(data):
     clusters_amount = len(set(data.flatten())) + 1
 
     color = seaborn.color_palette("hls", clusters_amount)
+    print(color)
     cmap = colors.ListedColormap(color)
     norm = colors.BoundaryNorm(range(-1, clusters_amount + 1), cmap.N)
 
@@ -45,7 +46,7 @@ def draw(data):
 
 
 def main():
-    # [[1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0],
+    # selectivity_list = [[1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0],
     #  [1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0],
     #  [1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 1], [0, 0, 0],
     #  [1, 1, 0], [1, 1, 0], [0, 1, 0], [0, 1, 1], [0, 0, 1], [0, 0, 0],
@@ -53,22 +54,12 @@ def main():
     #  [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 1], [0, 0, 0]]
 
 
-    # selectivity_list = generate_selectivity_list(n_columns, n_rows, n_queries)
-    # clustering = DBSCAN(eps=0.1, min_samples=3).fit(np.array([[1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0],
-    #               [1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0],
-    #               [1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 1], [0, 0, 0],
-    #               [1, 1, 0], [1, 1, 0], [0, 1, 0], [0, 1, 1], [0, 0, 1], [0, 0, 0],
-    #               [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 1], [0, 0, 0],
-    #               [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 1], [0, 0, 0]]))
+    selectivity_list = generate_selectivity_list(n_columns, n_rows, n_queries)
+    # clustering = DBSCAN(eps=0.1, min_samples=3).fit(np.array(selectivity_list))
     # clustering = KMeans(7).fit(np.array(selectivity_list))
-    clustering = sequential_hybrid([[1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0],
-     [1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0],
-     [1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 1], [0, 0, 0],
-     [1, 1, 0], [1, 1, 0], [0, 1, 0], [0, 1, 1], [0, 0, 1], [0, 0, 0],
-     [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 1], [0, 0, 0],
-     [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 1], [0, 0, 0]])
+    clustering = sequential_hybrid(selectivity_list)
     print(clustering)
-    draw(clustering)
+    # draw(clustering)
 
     # print('clustering algorithm is finished: ', str(len(set(clustering.labels_.flatten()))), 'clusters')
     # print(clustering.labels_)
