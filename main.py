@@ -8,10 +8,11 @@ import seaborn
 from matplotlib import colors
 from node2vec import Node2Vec
 
+from clustering_implementations.precomputed_horizontal import precomputed_horizontal
 from clustering_implementations.sequential_hybrid import sequential_hybrid
+from experiments.hdd_based_cost import sqnt_hybr_vs_hybr
 from node2vec_impl import table_to_graph, model_to_cells
 
-from cost_models.hdd_based import get_cost_per_query
 from selectivity_list_generator import generate_selectivity_list
 from temp_input_data import n_columns, n_rows, n_queries, n_dimensions
 
@@ -52,18 +53,15 @@ def main():
     #  [1, 1, 0], [1, 1, 0], [0, 1, 0], [0, 1, 1], [0, 0, 1], [0, 0, 0],
     #  [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 1], [0, 0, 0],
     #  [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 1], [0, 0, 0]]
+    # selectivity_list = generate_selectivity_list(n_columns, n_rows, n_queries)
 
 
-    selectivity_list = generate_selectivity_list(n_columns, n_rows, n_queries)
-    # clustering = DBSCAN(eps=0.1, min_samples=3).fit(np.array(selectivity_list))
-    # clustering = KMeans(7).fit(np.array(selectivity_list))
-    clustering = sequential_hybrid(selectivity_list)
-    print(clustering)
+    # clustering = DBSCAN(eps=0.1, min_samples=3).fit(np.load("selectivity_list"))
+    # clustering = KMeans(7).fit(np.load("selectivity_list"))
+    # clustering = sequential_hybrid(np.load("selectivity_list"))
+    # clustering = precomputed_horizontal(np.load("selectivity_list"))
+
     # draw(clustering)
-
-    # print('clustering algorithm is finished: ', str(len(set(clustering.labels_.flatten()))), 'clusters')
-    # print(clustering.labels_)
-    # draw(clustering.labels_)
 
 
     # graph = table_to_graph(np.array(selectivity_list))
@@ -73,9 +71,7 @@ def main():
     # restored_cells = model_to_cells(model)
     # clustering = DBSCAN(eps=1, min_samples=3).fit(restored_cells)
 
-
-    # print(sum([get_cost_per_query(selectivity_list, query_idx, clustering.labels_) for query_idx in
-    #            range(n_queries)]))
+    sqnt_hybr_vs_hybr()
 
 
 if __name__ == "__main__":

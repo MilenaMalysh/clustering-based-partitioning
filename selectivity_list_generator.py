@@ -24,6 +24,4 @@ def generate_selectivity_list(n_columns, n_rows, n_queries):
                 selectivity_list[row * n_columns + column][q] = 1
 
     selectivity_list.dump('selectivity_list')
-
     print('selectivity list is generated')
-    return selectivity_list

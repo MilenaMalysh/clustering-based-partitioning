@@ -1,7 +1,9 @@
 import math
 
+from temp_input_data import n_queries
 
-def get_cost_per_query_per_partition(selectivity_list, partition_size, referenced_partiotions_size):
+
+def get_cost_per_query_per_partition(partition_size, referenced_partiotions_size):
     buffer_size = 8 * 1024 * 1024
     block_size = 8 * 1024
     seek_time = 0.008
@@ -18,7 +20,7 @@ def get_cost_per_query_per_partition(selectivity_list, partition_size, reference
     return seek_cost + scan_cost
 
 
-def get_cost_per_query(query_idx, cluster_map):
+def get_cost_per_query(selectivity_list, query_idx, cluster_map):
     referenced_partitions = dict((cluster_id, 0) for selectivity, cluster_id in zip(selectivity_list, cluster_map)
                              if selectivity[query_idx])
 
@@ -30,3 +32,8 @@ def get_cost_per_query(query_idx, cluster_map):
 
     return sum([get_cost_per_query_per_partition(part_size, referenced_partiotions_size)
                 for part_size in referenced_partitions.values()])
+
+
+def get_cost_for_queries(selectivity_list, clustering):
+    return sum([get_cost_per_query(selectivity_list, query_idx, clustering) for query_idx in
+               range(n_queries)])
