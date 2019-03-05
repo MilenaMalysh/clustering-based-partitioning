@@ -1,22 +1,11 @@
-import random
-
-from sklearn.cluster import DBSCAN, KMeans
 import matplotlib.pyplot as plt
-import networkx as nx
 import numpy as np
 import seaborn
 from matplotlib import colors
-from node2vec import Node2Vec
 
-from clustering_implementations.precomputed_horizontal import precomputed_horizontal
-from clustering_implementations.sequential_hybrid import sequential_hybrid
-from experiments.hdd_based_cost import sqnt_hybr_vs_hybr
-from node2vec_impl import table_to_graph, model_to_cells
+from clustering_implementations.combined_horizontal.combined_horizontal import combined_horizontal
 
-from selectivity_list_generator import generate_selectivity_list
-from temp_input_data import n_columns, n_rows, n_queries, n_dimensions
-
-from scipy.cluster.hierarchy import fclusterdata
+from temp_input_data import n_columns, n_rows
 
 
 def draw(data):
@@ -47,15 +36,19 @@ def draw(data):
 
 
 def main():
-    # selectivity_list = [[1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0],
-    #  [1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0],
-    #  [1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 1], [0, 0, 0],
-    #  [1, 1, 0], [1, 1, 0], [0, 1, 0], [0, 1, 1], [0, 0, 1], [0, 0, 0],
-    #  [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 1], [0, 0, 0],
-    #  [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 1], [0, 0, 0]]
+
+
+    # input data
+    selectivity_list = [[1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0],
+     [1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0],
+     [1, 0, 0], [1, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 1], [0, 0, 0],
+     [1, 1, 0], [1, 1, 0], [0, 1, 0], [0, 1, 1], [0, 0, 1], [0, 0, 0],
+     [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 1], [0, 0, 0],
+     [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 1], [0, 0, 0]]
     # selectivity_list = generate_selectivity_list(n_columns, n_rows, n_queries)
 
 
+    # clustering algorithms
     # clustering = DBSCAN(eps=0.1, min_samples=3).fit(np.load("selectivity_list"))
     # clustering = KMeans(7).fit(np.load("selectivity_list"))
     # clustering = sequential_hybrid(np.load("selectivity_list"))
@@ -64,6 +57,7 @@ def main():
     # draw(clustering)
 
 
+    # node2vec
     # graph = table_to_graph(np.array(selectivity_list))
     # nx.draw_networkx(graph, arrows=False)
     # node2vec = Node2Vec(graph, dimensions=n_dimensions, walk_length=30, num_walks=200)
@@ -71,7 +65,12 @@ def main():
     # restored_cells = model_to_cells(model)
     # clustering = DBSCAN(eps=1, min_samples=3).fit(restored_cells)
 
-    sqnt_hybr_vs_hybr()
+
+
+    # tests
+    # precomp_horiz_vs_hybr()
+
+    combined_horizontal(selectivity_list)
 
 
 if __name__ == "__main__":

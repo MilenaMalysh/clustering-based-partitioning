@@ -4,7 +4,7 @@ from sklearn.cluster import DBSCAN
 from temp_input_data import n_rows, n_queries, n_columns
 
 
-def precomputed_horizontal(selectivity_list):
+def simple_horizontal(selectivity_list):
     row_selectivities = np.zeros((n_rows, n_queries))
     for query_idx in range(n_queries):
         for row_idx in range(n_rows):
