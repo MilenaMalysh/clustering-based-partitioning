@@ -9,7 +9,7 @@ from temp_input_data import n_columns, n_rows
 
 
 def draw(data):
-    data = data.reshape(n_rows, n_columns)
+    data = data.reshape(n_rows, n_columns).astype(int)
 
     clusters_amount = len(set(data.flatten())) + 1
 
