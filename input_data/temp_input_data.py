@@ -7,13 +7,15 @@
 #     [0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 1], [0, 0, 1], [0, 0, 0]
 # ]
 
-n_queries = 3
-n_columns = 6
-n_rows = 6
+# n_queries = 3
+# n_columns = 6
+# n_rows = 6
+# n_dimensions = 3
+import os
 
-# n_columns = 16
-# n_rows = 104857
-# # n_rows = 1048575
-# n_queries = 6
+n_columns = 16
+n_rows = 104857
+# n_rows = 1048575
+n_queries = 6
 
-n_dimensions = 3
+table_name = os.environ['TABLENAME']

@@ -1,6 +1,6 @@
 import math
 
-from temp_input_data import n_queries
+from input_data.temp_input_data import n_queries
 
 
 def get_cost_per_query_per_partition(partition_size, referenced_partiotions_size):

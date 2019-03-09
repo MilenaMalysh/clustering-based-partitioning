@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.cluster import DBSCAN
 
-from temp_input_data import n_rows, n_queries, n_columns
+from input_data.temp_input_data import n_rows, n_queries, n_columns
 
 
 def simple_horizontal(selectivity_list):

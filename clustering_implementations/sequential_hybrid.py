@@ -1,6 +1,6 @@
 from sklearn.cluster import DBSCAN
 
-from temp_input_data import n_columns, n_rows, n_queries
+from input_data.temp_input_data import n_columns, n_rows, n_queries
 import numpy as np
 
 

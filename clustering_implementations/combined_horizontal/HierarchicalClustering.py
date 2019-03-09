@@ -5,12 +5,13 @@ from copy import deepcopy
 
 
 class HierarchicalClustering:
-    def __init__(self, points, clusters_amount, dimensions):
+    def __init__(self, points, clusters_amount, dimensions, connector):
         self.clusters_amount = clusters_amount
         self.dimensions = dimensions
         self.clusters = points
         self.original_dataset = deepcopy(points)
         self.heap = self.build_priority_queue(self.compute_pairwise_distance())
+        self.db_connector = connector
 
     def merged_clusters_coordinates(self, coord1, coord2, rows_amount1, rows_amount2):
         new_coord = []
