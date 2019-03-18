@@ -1,6 +1,8 @@
 import itertools
 
 from clustering_implementations.combined_horizontal.HierarchicalClustering import HierarchicalClustering
+from db.crud.config_queries import add_column, drop_column
+from db.crud.partition_queries import update_cluster_id_col
 from db.crud.select_queries import select_count
 from input_data.queries import queries
 from input_data.temp_input_data import n_rows, n_queries, n_columns
@@ -36,7 +38,7 @@ def combined_horizontal_from_sel_list(selectivity_list, connector):
 
     print('combined horizontal step1')
 
-    hc = HierarchicalClustering(distinct_clusters, 2, n_queries, connector)
+    hc = HierarchicalClustering(distinct_clusters, 2, n_queries, connector, '')
 
     hc.hierarchical_clustering()
 
@@ -59,19 +61,26 @@ def combined_horizontal_from_db(connector):
     # 1st step
     distinct_clusters = {}
     new_cluster_idx = 0
+    cluster_id_col_name = 'cluster_id'
+
+    add_column(connector, cluster_id_col_name)
+
     for qs in itertools.product([0, 1], repeat=len(queries)):
         selected_queries = [query if qs[idx] else 'NOT ' + query for idx, query in enumerate(queries)]
         rows_amount = select_count(connector, selected_queries)
         if rows_amount:
+            update_cluster_id_col(connector, selected_queries, new_cluster_idx, cluster_id_col_name)
             distinct_clusters[frozenset({new_cluster_idx})] = {'coordinate': list(qs), 'rows_amount': rows_amount}
             new_cluster_idx +=1
 
-    print('combined horizontal step1')
+    print('db setup is finished')
 
-    hc = HierarchicalClustering(distinct_clusters, 5, len(queries), connector)
+    hc = HierarchicalClustering(distinct_clusters, 5, len(queries), connector, cluster_id_col_name)
 
-    hc.hierarchical_clustering()
+    cost = hc.hierarchical_clustering()
 
-    print('combined horizontal step2 ', hc.clusters)
+    drop_column(connector, cluster_id_col_name)
+
+    print('final results: \n clusters:', hc.clusters, '\n cost:', cost)
 
     return hc.clusters

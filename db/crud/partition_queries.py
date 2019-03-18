@@ -1,4 +1,4 @@
-from input_data.queries import queries
+from input_data.temp_input_data import table_name
 #
 # # TODO: sort cluster ids for clusters_queries keys in alphabetical order
 # def create_partitions(connector, clusters_queries, master_table):
@@ -56,3 +56,34 @@ from input_data.queries import queries
 #
 #     # step 3: delete old table and add new one
 #     # TODO: recreate clusters table back
+
+
+def update_cluster_id_col(connector, where_clauses, cluster_id, cluster_id_col_name):
+    connector.query(
+        "UPDATE {0} SET {1} = {2} WHERE {3};".format(table_name, cluster_id_col_name, cluster_id,
+                                                     ' AND '.join(where_clauses))
+    )
+    connector.commit()
+
+
+def create_list_partition_column(connector, cluster_id_col_name):
+    connector.query(
+        "SELECT hypopg_partition_table('{0}', 'PARTITION BY LIST({1})');".format(table_name, cluster_id_col_name)
+    )
+    connector.commit()
+
+
+def drop_partitions(connector):
+    connector.query("SELECT hypopg_reset_table()")
+    connector.commit()
+
+
+def create_list_partition(connector, cluster_ids):
+    connector.query(
+        "SELECT tablename FROM hypopg_add_partition('{0}_{1}', 'PARTITION OF {0} FOR VALUES IN ({2})');".format(
+            table_name,
+            '_'.join(str(cluster_id) for cluster_id in cluster_ids),
+            ', '.join(str(cluster_id) for cluster_id in cluster_ids)
+        )
+    )
+    connector.commit()

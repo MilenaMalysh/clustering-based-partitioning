@@ -8,6 +8,8 @@ queries = [
     "l_orderkey = 1"
 ]
 
+# select count(*) from lineitem where (not l_shipdate >= date '1993-01-01') and (not l_discount between 0.07 and 0.09) and (not l_quantity < 24) and (l_commitdate < l_receiptdate) and not (l_orderkey = 1);
+
 # queries = [
 #     {'column': 'l_shipdate', 'from': "'1993-01-01'", 'to': "'1994-01-01'"},
 #     {'column': 'l_discount', 'from': '0.07', 'to': '0.09'},

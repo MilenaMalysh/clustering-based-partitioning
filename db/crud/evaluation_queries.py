@@ -3,12 +3,20 @@ import os
 from input_data.temp_input_data import table_name
 
 
-def get_execution_time(connector, query):
-    return explain_analyze_query(connector, query)[0][0]['Execution Time']
+def get_plan_costs(connector, query):
+    return explain_query(connector, query)[0][0]['Plan']['Total Cost']
 
 
-def explain_analyze_query(connector, query):
-    return connector.query("EXPLAIN (ANALYZE true, FORMAT json) " + query).fetchone()
+def explain_query(connector, query):
+    return connector.query("EXPLAIN (FORMAT json) " + query).fetchone()
+
+
+def get_query_cost_on_partitions(connector, cluster_id_col_name, cluster_ids):
+    return get_plan_costs(connector, "SELECT * from {0} WHERE {1} IN ({2})".format(
+        table_name,
+        cluster_id_col_name,
+        ', '.join(cluster_ids)
+    ))
 
 
 def count_partition_query(connector, partition):

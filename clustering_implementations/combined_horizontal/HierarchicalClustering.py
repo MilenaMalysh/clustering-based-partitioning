@@ -3,15 +3,20 @@ import heapq
 from itertools import combinations
 from copy import deepcopy
 
+from db.crud.evaluation_queries import get_query_cost_on_partitions
+from db.crud.partition_queries import create_list_partition, drop_partitions, create_list_partition_column
+from input_data.queries import queries
+
 
 class HierarchicalClustering:
-    def __init__(self, points, clusters_amount, dimensions, connector):
+    def __init__(self, points, clusters_amount, dimensions, connector, cluster_id_col_name):
         self.clusters_amount = clusters_amount
         self.dimensions = dimensions
         self.clusters = points
         self.original_dataset = deepcopy(points)
         self.heap = self.build_priority_queue(self.compute_pairwise_distance())
         self.db_connector = connector
+        self.cluster_id_col_name = cluster_id_col_name
 
     def merged_clusters_coordinates(self, coord1, coord2, rows_amount1, rows_amount2):
         new_coord = []
@@ -42,7 +47,33 @@ class HierarchicalClustering:
         self.heap = distance_list
         return self.heap
 
+    def clusters_cost(self):
+        costs = 0
+        for query_idx in range(len(queries)):
+            clusters_touched = []
+            for cluster, cluster_data in self.original_dataset.items():
+                if cluster_data['coordinate'][query_idx]:
+                    clusters_touched.append(str(*cluster))
+            costs += get_query_cost_on_partitions(self.db_connector, self.cluster_id_col_name, clusters_touched)
+        return costs
+
+    def merge_clusters_db_cost(self, merge_clusters):
+        create_list_partition_column(self.db_connector, self.cluster_id_col_name)
+        for cluster in self.clusters.keys():
+            if not merge_clusters or (cluster != merge_clusters[0] and cluster != merge_clusters[1]):
+                create_list_partition(self.db_connector, cluster)
+        if merge_clusters:
+            create_list_partition(self.db_connector, merge_clusters[0].union(merge_clusters[1]))
+        costs = self.clusters_cost()
+        drop_partitions(self.db_connector)
+        return costs
+
     def hierarchical_clustering(self):
+
+        print('cost before clustering(1 cluster): ', self.clusters_cost())
+        print('cost before clustering(all clusters): ', self.merge_clusters_db_cost(()))
+
+        min_cost = 0
 
         while len(self.clusters) > self.clusters_amount:
             clusters_pairs = []
@@ -59,13 +90,16 @@ class HierarchicalClustering:
                         heapq.heappush(self.heap, (new_dist, new_dist_clusters))
                         break
 
-            # min_cost = self.merge_clusters_db_cost(clusters_pairs[0][1])
+
+            min_cost = self.merge_clusters_db_cost(clusters_pairs[0][1])
             min_cost_pair_idx = 0
-            # for idx, (_, pair) in enumerate(clusters_pairs[1:]):
-            #     cost = self.merge_clusters_db_cost(pair)
-            #     if cost < min_cost:
-            #         min_cost = cost
-            #         min_cost_pair_idx = idx + 1
+            # if we use real db
+            if self.cluster_id_col_name:
+                for idx, (_, pair) in enumerate(clusters_pairs[1:]):
+                    cost = self.merge_clusters_db_cost(pair)
+                    if cost < min_cost:
+                        min_cost = cost
+                        min_cost_pair_idx = idx
 
 
             # push values back to the heap
@@ -88,4 +122,6 @@ class HierarchicalClustering:
                 'coordinate': new_cluster_coordinate,
                 'rows_amount': cluster1['rows_amount'] + cluster2['rows_amount']
             }
+            print('step', len(self.original_dataset) - len(self.clusters), ' cost: ', min_cost)
+        return min_cost
 
