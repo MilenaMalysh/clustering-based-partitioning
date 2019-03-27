@@ -5,7 +5,14 @@ queries = [
     "l_discount between 0.07 and 0.09",
     "l_quantity < 24",
     "l_commitdate < l_receiptdate",
-    "l_orderkey = 1"
+
+    # "l_orderkey = 1",
+    # "l_returnflag = 'A'",
+    # "l_returnflag = 'N'",
+    # "l_returnflag = 'R'",
+    # "l_linestatus = 'F'",
+    # "l_commitdate > date '1992-09-09'",
+    # "l_shipmode in ('AIR', 'MAIL', 'REG AIR', 'TRUCK')"
 ]
 
 # select count(*) from lineitem where (not l_shipdate >= date '1993-01-01') and (not l_discount between 0.07 and 0.09) and (not l_quantity < 24) and (l_commitdate < l_receiptdate) and not (l_orderkey = 1);

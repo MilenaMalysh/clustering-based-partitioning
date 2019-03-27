@@ -21,7 +21,12 @@ from input_data.temp_input_data import table_name
 
 
 def copy_table_structure(connector, table_copy_name):
-    connector.query("CREATE TABLE {0} ( like {1} including all)".format(table_name, table_copy_name))
+    connector.query("CREATE TABLE {0} ( like {1} including all)".format(table_copy_name, table_name))
+    connector.commit()
+
+
+def copy_table_data(connector, table_copy_name):
+    connector.query("INSERT INTO {0} SELECT * FROM {1};".format(table_copy_name, table_name))
     connector.commit()
 
 
@@ -32,4 +37,9 @@ def add_column(connector, column_name):
 
 def drop_column(connector, column_name):
     connector.query("ALTER TABLE {0} DROP COLUMN {1};".format(table_name, column_name))
+    connector.commit()
+
+
+def drop_table(connector, table_to_delete):
+    connector.query("DROP TABLE {0} CASCADE;".format(table_to_delete))
     connector.commit()

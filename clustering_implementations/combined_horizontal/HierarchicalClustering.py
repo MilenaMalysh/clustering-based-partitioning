@@ -4,8 +4,10 @@ from itertools import combinations
 from copy import deepcopy
 
 from db.crud.evaluation_queries import get_query_cost_on_partitions
-from db.crud.partition_queries import create_list_partition, drop_partitions, create_list_partition_column
+from db.crud.partition_queries import create_list_partition, drop_partitions, create_list_partition_column, \
+    create_partitions
 from input_data.queries import queries
+from input_data.temp_input_data import table_name
 
 
 class HierarchicalClustering:
@@ -70,8 +72,14 @@ class HierarchicalClustering:
 
     def hierarchical_clustering(self):
 
-        print('cost before clustering(1 cluster): ', self.clusters_cost())
-        print('cost before clustering(all clusters): ', self.merge_clusters_db_cost(()))
+        print('cost before clustering(1 cluster): \n hypopg costs: {0}\n real costs: {1}'.format(
+            self.clusters_cost(),
+            create_partitions(self.db_connector, {'0': [v['coordinate'] for k, v in self.original_dataset.items()]}, table_name + '_copy')
+        ))
+        print('cost before clustering(all clusters): \n hypopg costs: {0}\n real costs: {1}'.format(
+            self.merge_clusters_db_cost(()),
+            create_partitions(self.db_connector, {str(list(k)[0]): [v['coordinate']] for k, v in self.original_dataset.items()}, table_name + '_copy')
+        ))
 
         min_cost = 0
 
@@ -110,6 +118,8 @@ class HierarchicalClustering:
             cluster1 = self.clusters.pop(clusters_pairs[min_cost_pair_idx][1][0])
             cluster2 = self.clusters.pop(clusters_pairs[min_cost_pair_idx][1][1])
 
+            print('merge clusters: ', cluster1, cluster2)
+
             new_cluster_id = clusters_pairs[min_cost_pair_idx][1][0].union(clusters_pairs[min_cost_pair_idx][1][1])
             new_cluster_coordinate = self.merged_clusters_coordinates(cluster1['coordinate'], cluster2['coordinate'],
                                                                       cluster1['rows_amount'], cluster2['rows_amount'])
@@ -122,6 +132,14 @@ class HierarchicalClustering:
                 'coordinate': new_cluster_coordinate,
                 'rows_amount': cluster1['rows_amount'] + cluster2['rows_amount']
             }
-            print('step', len(self.original_dataset) - len(self.clusters), ' cost: ', min_cost)
+
+            real_cluster_coordinates = {}
+            for cluster_ids in self.clusters.keys():
+                real_cluster_coordinates['_'.join([str(cl_id) for cl_id in sorted(list(cluster_ids))])] = \
+                    [self.original_dataset[frozenset({cluster_id})]['coordinate'] for cluster_id in cluster_ids]
+
+            real_cost = create_partitions(self.db_connector, real_cluster_coordinates, table_name + '_copy')
+            print('\nstep', len(self.original_dataset) - len(self.clusters),
+                  ' hypopg cost: ', min_cost, ' real cost: ', real_cost)
         return min_cost
 
