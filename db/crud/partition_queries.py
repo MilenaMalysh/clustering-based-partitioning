@@ -1,5 +1,5 @@
 from db.crud.config_queries import copy_table_structure, copy_table_data, drop_table
-from db.crud.evaluation_queries import get_execution_time, get_plan_costs
+from db.crud.evaluation_queries import get_execution_time, get_plan_costs, get_actual_time
 from input_data.queries import queries
 from input_data.temp_input_data import table_name
 from helpers.minimize import minimize
@@ -11,10 +11,10 @@ def create_partitions(connector, clusters_queries, master_table):
         clusters_check_conditions = create_tables_inheritance(connector, clusters_queries, master_table)
         create_insert_trigger(connector, clusters_check_conditions, master_table)
 
-    creation_cost = get_execution_time(connector, "INSERT INTO {0} SELECT * FROM {1};".format(master_table, table_name))
+    creation_cost = get_actual_time(connector, "INSERT INTO {0} SELECT * FROM {1};".format(master_table, table_name))
     execution_cost = 0
     for query in queries:
-        execution_cost += get_execution_time(connector, "SELECT * FROM {0} WHERE {1}".format(master_table, query))
+        execution_cost += get_plan_costs(connector, "SELECT * FROM {0} WHERE {1}".format(master_table, query))
 
     drop_table(connector, master_table)
     return {

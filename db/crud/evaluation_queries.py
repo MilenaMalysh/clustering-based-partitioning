@@ -15,6 +15,11 @@ def get_execution_time(connector, query):
     return explain_analyze_query(connector, query)[0][0]['Execution Time']
 
 
+def get_actual_time(connector, query):
+    plan_cost = explain_analyze_query(connector, query)[0][0]['Plan']
+    return plan_cost['Actual Total Time'] + plan_cost['Actual Startup Time']
+
+
 def explain_analyze_query(connector, query):
     result = connector.query("EXPLAIN (ANALYZE, FORMAT json) " + query).fetchone()
     connector.commit()
