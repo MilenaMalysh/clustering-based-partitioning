@@ -43,3 +43,29 @@ def drop_column(connector, column_name):
 def drop_table(connector, table_to_delete):
     connector.query("DROP TABLE {0} CASCADE;".format(table_to_delete))
     connector.commit()
+
+
+def insert_data_from_table(connector, target_table, src_table, where_clause=None):
+    connector.query(("INSERT INTO {0} SELECT * FROM {1}" + (" WHERE {2};" if where_clause else ";"))
+                    .format(target_table, src_table, where_clause))
+    connector.commit()
+
+
+def create_table(connector, table_to_create, check_condition, inherits_from):
+    connector.query(("CREATE TABLE {0}" + " (CHECK ({1})) INHERITS ({2});" if inherits_from else ';').format(
+        table_to_create, check_condition, inherits_from))
+    connector.commit()
+
+
+def create_insertion_rule(connector, table_to_create, check_condition, inherits_from):
+    connector.query(
+        "CREATE RULE insert_{0} AS ON INSERT TO {1} WHERE ({2}) DO INSTEAD INSERT INTO {0} VALUES (NEW.*);".format(
+            table_to_create, inherits_from, check_condition))
+    connector.commit()
+
+
+def drop_insertion_rule(connector, subtable_name, master_table):
+    connector.query(
+        "DROP RULE insert_{0} ON {1} CASCADE".format(
+            subtable_name, master_table))
+    connector.commit()

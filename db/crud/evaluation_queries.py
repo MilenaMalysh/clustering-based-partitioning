@@ -25,15 +25,6 @@ def explain_analyze_query(connector, query):
     connector.commit()
     return result
 
-
-def get_query_cost_on_partitions(connector, cluster_id_col_name, cluster_ids):
-    return get_plan_costs(connector, "SELECT * from {0} WHERE {1} IN ({2})".format(
-        table_name,
-        cluster_id_col_name,
-        ', '.join(cluster_ids)
-    ))
-
-
 def count_partition_query(connector, partition):
     if partition:
         query = []
@@ -45,3 +36,9 @@ def count_partition_query(connector, partition):
         return connector.query("SELECT COUNT(*) FROM " + table_name + ' WHERE ' + ' AND '.join(query)).fetchone()
     else:
         return 0
+
+
+def drop_statistics(connector):
+    connector.query("select pg_stat_reset();")
+    connector.commit()
+    return

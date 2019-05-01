@@ -1,13 +1,11 @@
-from clustering_implementations.combined_horizontal.combined_horizontal import combined_horizontal_from_sel_list, \
-    combined_horizontal_from_db
+from clustering_implementations.combined_horizontal.combined_horizontal import combined_horizontal_from_db
 from db.PostgresConnector import PostgresConnector
 
 
 def main():
 
     connector = PostgresConnector()
-    # combined_horizontal_from_sel_list(selectivity_list, connector)
-    combined_horizontal_from_db(connector)
+    combined_horizontal_from_db(connector, 'euclidean_distance', 'complete_linkage')
 
 
 # clustering algorithms
