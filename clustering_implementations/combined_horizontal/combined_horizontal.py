@@ -50,4 +50,4 @@ def combined_horizontal_from_db(connector, metric, linkage_criterion):
 
     print('final results: \n clusters:', hc.clusters, '\n cost:', cost)
 
-    return hc.clusters
+    return {'cost': cost, 'clusters': hc.clusters}

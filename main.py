@@ -5,7 +5,7 @@ from db.PostgresConnector import PostgresConnector
 def main():
 
     connector = PostgresConnector()
-    combined_horizontal_from_db(connector, 'euclidean_distance', 'complete_linkage')
+    combined_horizontal_from_db(connector, 'euclidean_distance', 'single_linkage')
 
 
 # clustering algorithms

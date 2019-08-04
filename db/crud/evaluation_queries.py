@@ -1,6 +1,15 @@
 import os
 
+from input_data.queries import queries
 from input_data.temp_input_data import table_name
+
+
+def get_partitions_cost(connector, table):
+    costs = 0
+    for query in queries:
+        costs += get_plan_costs(connector,
+                                'SELECT * FROM {0} WHERE {1};'.format(table, query))
+    return costs
 
 
 def get_plan_costs(connector, query):
@@ -24,6 +33,7 @@ def explain_analyze_query(connector, query):
     result = connector.query("EXPLAIN (ANALYZE, FORMAT json) " + query).fetchone()
     connector.commit()
     return result
+
 
 def count_partition_query(connector, partition):
     if partition:

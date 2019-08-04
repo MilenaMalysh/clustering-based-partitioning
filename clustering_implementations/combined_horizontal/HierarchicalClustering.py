@@ -5,7 +5,8 @@ import heapq
 from itertools import combinations
 from copy import deepcopy
 
-from db.crud.evaluation_queries import get_plan_costs, drop_statistics
+from db.crud.config_queries import drop_table
+from db.crud.evaluation_queries import get_plan_costs, drop_statistics, get_partitions_cost
 from db.crud.partition_queries import create_partitions, merge_two_partitions, split_partition
 from input_data.queries import queries
 from input_data.temp_input_data import table_name
@@ -39,13 +40,6 @@ class HierarchicalClustering:
     def build_priority_queue(distance_list):
         heapq.heapify(distance_list)
         return distance_list
-
-    def query_execution_costs(self):
-        costs = 0
-        for query in queries:
-            costs += get_plan_costs(self.db_connector,
-                                    'SELECT * FROM {0} WHERE {1};'.format(table_name + '_copy', query))
-        return costs
 
     def hierarchical_clustering(self):
 
@@ -83,7 +77,7 @@ class HierarchicalClustering:
                         )
                     )
                     drop_statistics(self.db_connector)
-                    cost = self.query_execution_costs()
+                    cost = get_partitions_cost(self.db_connector, table_name + '_copy')
                     if cost < min_cost or not min_cost:
                         min_cost = cost
                         min_cost_pair_idx = idx
@@ -124,4 +118,6 @@ class HierarchicalClustering:
                                                 cluster_to_merge_two])
                     )
                 )
-            return
+            plan_cost = get_partitions_cost(self.db_connector, table_name + '_copy')
+            drop_table(self.db_connector, table_name + '_copy')
+            return plan_cost

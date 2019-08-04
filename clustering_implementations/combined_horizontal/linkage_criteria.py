@@ -37,19 +37,19 @@ def average_linkage(clusters, clusters_to_merge, metric):
 
 
 def centroid_method(clusters, clusters_to_merge, metric):
-    dimensionality = len(list(clusters.values())[0]['coordinates'])
+    dimensionality = len(list(clusters.values())[0]['coordinate'])
     cluster1_centroid = []
     cluster2_centroid = []
 
     for dimension in range(dimensionality):
         coord_sum = 0.0
         for cluster_id in clusters_to_merge[0]:
-            coord_sum += clusters[frozenset({cluster_id})]['coordinates'][dimension]
+            coord_sum += clusters[frozenset({cluster_id})]['coordinate'][dimension]
         cluster1_centroid.append(coord_sum / len(clusters_to_merge[0]))
 
         coord_sum = 0.0
         for cluster_id in clusters_to_merge[1]:
-            coord_sum += clusters[frozenset({cluster_id})]['coordinates'][dimension]
+            coord_sum += clusters[frozenset({cluster_id})]['coordinate'][dimension]
         cluster2_centroid.append(coord_sum / len(clusters_to_merge[1]))
     metric_function = getattr(metrics, metric)
     dist = metric_function(cluster1_centroid, cluster2_centroid)
@@ -57,7 +57,7 @@ def centroid_method(clusters, clusters_to_merge, metric):
 
 
 def centroid_method_rows_amount(clusters, clusters_to_merge, metric):
-    dimensionality = len(list(clusters.values())[0]['coordinates'])
+    dimensionality = len(list(clusters.values())[0]['coordinate'])
     cluster1_centroid = []
     cluster2_centroid = []
 
@@ -65,17 +65,17 @@ def centroid_method_rows_amount(clusters, clusters_to_merge, metric):
         coord_sum = 0.0
         rows_sum = 0
         for cluster_id in clusters_to_merge[0]:
-            coord_sum += clusters[frozenset({cluster_id})]['coordinates'][dimension] *\
-                         clusters[frozenset({cluster_id})]['rows_amount'][dimension]
-            rows_sum += clusters[frozenset({cluster_id})]['rows_amount'][dimension]
+            coord_sum += clusters[frozenset({cluster_id})]['coordinate'][dimension] *\
+                         clusters[frozenset({cluster_id})]['rows_amount']
+            rows_sum += clusters[frozenset({cluster_id})]['rows_amount']
         cluster1_centroid.append(coord_sum / rows_sum)
 
         coord_sum = 0.0
         rows_sum = 0
         for cluster_id in clusters_to_merge[1]:
-            coord_sum += clusters[frozenset({cluster_id})]['coordinates'][dimension] *\
-                         clusters[frozenset({cluster_id})]['rows_amount'][dimension]
-            rows_sum += clusters[frozenset({cluster_id})]['rows_amount'][dimension]
+            coord_sum += clusters[frozenset({cluster_id})]['coordinate'][dimension] *\
+                         clusters[frozenset({cluster_id})]['rows_amount']
+            rows_sum += clusters[frozenset({cluster_id})]['rows_amount']
         cluster2_centroid.append(coord_sum / rows_sum)
     metric_function = getattr(metrics, metric)
     dist = metric_function(cluster1_centroid, cluster2_centroid)
