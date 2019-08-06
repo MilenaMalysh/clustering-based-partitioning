@@ -17,5 +17,6 @@ n_columns = 16
 n_rows = 104857
 # n_rows = 1048575
 n_queries = 6
+n_clusters = 4
 
 table_name = os.environ['TABLENAME']

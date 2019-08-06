@@ -1,10 +1,28 @@
 # where clauses
 queries = [
-    "l_shipdate >= date '1993-01-01'",
-    # "l_shipdate >= date '1994-01-01'",
-    "l_discount between 0.07 and 0.09",
-    "l_quantity < 24",
-    "l_commitdate < l_receiptdate",
+    [('l_orderkey', '<', '200000'), ('l_quantity', '<', '24'), ('l_extendedprice', '>', '50000')],
+    [('l_orderkey', '>', '500000'), ('l_suppkey', '>', '3000'), ('l_extendedprice', '>', '50000'), ('l_quantity', '>', '10')],
+    [('l_suppkey', '>', '6000'), ('l_linenumber', '<', '4'), ('l_partkey', '>', '160000'), ('l_quantity', '>', '10')],
+    [('l_orderkey', '<', '200000'), ('l_quantity', '<', '24'), ('l_suppkey', '>', '6000'), ('l_partkey', '>', '160000')],
+    [('l_orderkey', '>', '500000'), ('l_quantity', '>', '10')],
+    [('l_partkey', '>', '160000'), ('l_extendedprice', '>', '50000'), ('l_quantity', '>', '10')]
+    # 'l_orderkey > 500000',
+    # 'l_quantity < 24',
+    # 'l_suppkey > 3000',
+    # 'l_linenumber < 4',
+    # 'l_quantity > 10',
+    # 'l_extendedprice > 50000',
+    # 'l_partkey > 160000',
+    # 'l_orderkey < 200000',
+    # 'l_suppkey > 6000'
+
+
+
+    # "l_shipdate >= date '1993-01-01'",
+    # # "l_shipdate >= date '1994-01-01'",
+    # "l_discount < 0.07",
+    # "l_quantity < 24",
+    # "l_commitdate < l_receiptdate",
 
     # "l_orderkey = 1",
     # "l_returnflag = 'A'",
