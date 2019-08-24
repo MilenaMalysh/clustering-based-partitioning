@@ -17,7 +17,7 @@ import clustering_implementations.combined_horizontal.linkage_criteria as linkag
 
 
 class HierarchicalClustering:
-    def __init__(self, points, tokenized_queries,  dimensions, connector, metric, linkage_criterion):
+    def __init__(self, points, queries, dimensions, connector, metric, linkage_criterion):
         self.dimensions = dimensions
         self.clusters = set(points.keys())
         self.original_dataset = deepcopy(points)
@@ -25,7 +25,8 @@ class HierarchicalClustering:
         self.linkage_criterion = linkage_criterion
         self.heap = self.build_priority_queue(self.compute_pairwise_distance())
         self.db_connector = connector
-        self.tokenized_queries = tokenized_queries
+        self.queries = queries
+        self.tokenized_queries = [str_to_query_tokens(query) for query in queries]
 
     def create_mock_fragment(self, coordinate):
         subclusters_check_conditions = []
@@ -35,7 +36,7 @@ class HierarchicalClustering:
             for idx, query in enumerate(subcluster_queries):
                 if query != -1:
                     subcluster_check_conditions.append(
-                        str(self.tokenized_queries[idx]) if query else '(NOT ' + str(self.tokenized_queries[idx]) + ')'
+                        self.queries[idx] if query else '(NOT ' + self.queries[idx] + ')'
                     )
             subclusters_check_conditions.append('(' + ' AND '.join(subcluster_check_conditions) + ')')
         subclusters_check_conditions_str = ' OR '.join(subclusters_check_conditions)
@@ -109,7 +110,9 @@ class HierarchicalClustering:
                             mock_fragmets.append(self.create_mock_fragment([self.original_dataset[frozenset({c})]['coordinate'] for c in cluster]))
                     mock_fragmets.append(self.create_mock_fragment(
                         [self.original_dataset[frozenset({c})]['coordinate'] for c in pair[0].union(pair[1])]))
-                    cost = hdd_based_adapted_cost(self.tokenized_queries, mock_fragmets)
+                    cost = 0
+                    for query in self.tokenized_queries:
+                        cost += hdd_based_adapted_cost(query, mock_fragmets)
                     if cost < min_cost or not min_cost:
                         min_cost = cost
                         min_cost_pair_idx = idx
@@ -150,6 +153,16 @@ class HierarchicalClustering:
                 #                                 cluster_to_merge_two])
                 #     )
                 # )
+                print('new clusters ', self.clusters)
+                print('new cost ', min_cost)
             # plan_cost = get_partitions_cost(self.db_connector, table_name + '_copy')
             # drop_table(self.db_connector, table_name + '_copy')
-            return plan_cost
+            print('***********************************************************************')
+            print('RESULT ')
+            mock_fragmets = []
+            for cluster in self.clusters:
+                mock_fragmet = self.create_mock_fragment(
+                        [self.original_dataset[frozenset({c})]['coordinate'] for c in cluster])
+                print(mock_fragmet.where_clause)
+                mock_fragmets.append(mock_fragmet)
+            return min_cost

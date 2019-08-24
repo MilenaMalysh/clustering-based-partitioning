@@ -65,13 +65,13 @@ my example for thesis
 
 
 def test_my_values():
-    frequencies = [1] * 9
-    predicate_usage = [[] for _ in queries]
-    predicates = list(set().union(*queries))
-    for predicate_idx, predicate in enumerate(predicates):
-        for query_idx, query in enumerate(queries):
-            if predicate in query:
-                predicate_usage[query_idx].append(predicate_idx)
+    # frequencies = [1] * 9
+    # predicate_usage = [[] for _ in queries]
+    # predicates = list(set().union(*queries))
+    # for predicate_idx, predicate in enumerate(predicates):
+    #     for query_idx, query in enumerate(queries):
+    #         if predicate in query:
+    #             predicate_usage[query_idx].append(predicate_idx)
 
     # predicates_amount = 9
     # predicate_usage = [
@@ -82,7 +82,17 @@ def test_my_values():
     #     [0, 8],
     #     [6, 7, 8]
     # ]
-    zhang(frequencies, predicates, predicate_usage, PostgresConnector())
+    frequencies = [5, 20, 20, 15, 10, 10]  # my example
+    predicates_amount = 11
+    predicate_usage = [
+        [1, 2, 9],
+        [0, 5, 7, 9, 10],
+        [3, 4, 6, 8, 10],
+        [1, 2, 4, 8],
+        [0, 10],
+        [3, 8, 9, 10]
+    ]
+    zhang(frequencies, list(range(predicates_amount)), predicate_usage, PostgresConnector())
 
 
 if __name__ == "__main__":

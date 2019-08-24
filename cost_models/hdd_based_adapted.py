@@ -20,7 +20,7 @@ class Op(object):
     def __init__(self, tokens):
         if len(tokens) == 1:
             tokens = tokens[0]
-        self.items = list(filter(lambda x: isinstance(x, (Op, Cond)), tokens))
+        self.items = list(filter(lambda x: isinstance(x, (Op, Cond, BoolNot)), tokens))
 
     def __iter__(self):
         return iter(self.items)

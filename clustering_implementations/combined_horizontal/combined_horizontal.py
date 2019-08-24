@@ -4,7 +4,6 @@ from clustering_implementations.combined_horizontal.HierarchicalClustering impor
 from cost_models.hdd_based_adapted import str_to_query_tokens
 from db.crud.config_queries import add_column, drop_column
 from db.crud.select_queries import select_count
-from input_data.queries import queries
 from input_data.temp_input_data import n_rows, n_queries, n_columns
 
 
@@ -22,11 +21,11 @@ def queries_to_coordinates(queries_untouched):
 '''
 
 
-def combined_horizontal_from_db(connector, metric, linkage_criterion):
+def combined_horizontal_from_db(connector, metric, linkage_criterion, queries):
     distinct_clusters = {}
     new_cluster_idx = 0
 
-    str_queries = ['(' + ' AND '.join([' '.join(i) for i in query]) + ')' for query in queries]
+    str_queries = ['(' + ' AND '.join([' '.join([str(i) for i in q]) for q in query]) + ')' for query in queries]
 
     for qs in itertools.product([0, 1], repeat=len(str_queries)):
         selected_queries = [query if qs[idx] else '(NOT ' + query + ')' for idx, query in enumerate(str_queries)]
@@ -35,17 +34,16 @@ def combined_horizontal_from_db(connector, metric, linkage_criterion):
             distinct_clusters[frozenset({new_cluster_idx})] = {'coordinate': list(qs), 'rows_amount': rows_amount}
             new_cluster_idx += 1
 
-    tokenized_queries = [str_to_query_tokens(query) for query in str_queries]
     hc = HierarchicalClustering(
         distinct_clusters,
-        tokenized_queries,
+        str_queries,
         len(queries),
         connector,
         metric,
         linkage_criterion
     )
 
-    hc = hc.hierarchical_clustering()
+    return hc.hierarchical_clustering()
     #
     # print('final results: \n clusters:', hc.clusters, '\n cost:', cost)
     #

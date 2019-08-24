@@ -174,27 +174,29 @@ def zhang(frequencies, input_predicates, predicate_usage, connector):
     #             best_cost = cost
     #             best_split = [ordered_predicates[:split_point], ordered_predicates[split_point:]]
 
-    # slip - non - overlap with custom cost function & m-random points
-    best_split = []
-    best_cost = None
-    for order in range(len(ordered_predicates)):
-        ordered_predicates += [ordered_predicates.pop(0)]
-        print('ordered_predicates', ordered_predicates)
-        for split_points in itertools.combinations(range(1, len(input_predicates)), n_clusters - 2):
-            sets = [form_fragment(ordered_predicates[(split_points[idx - 1] if idx else 0): split_points[idx]],
-                                  input_predicates, connector) for idx in range(len(split_points))] + [
-                form_fragment(ordered_predicates[split_points[-1]:], input_predicates, connector)
-            ]
-            # negation of conjunction of fragment predicates
-            sets += [form_negation_fragment(sets, connector)]
-            cost = 0
-            for query in queries:
-                cost += hdd_based_adapted_cost(str_to_query_tokens(' AND '.join([' '.join(i) for i in query])), sets)
-            if best_cost is None or cost < best_cost:
-                print('local best', cost, split_points, ordered_predicates, [str(fragment) for fragment in sets])
-                best_cost = cost
-                best_split = sets
+    # # slip - non - overlap with custom cost function & m-random points
+    # best_split = []
+    # best_cost = None
+    # for order in range(len(ordered_predicates)):
+    #     ordered_predicates += [ordered_predicates.pop(0)]
+    #     print('ordered_predicates', ordered_predicates)
+    #     for split_points in itertools.combinations(range(1, len(input_predicates)), n_clusters - 2):
+    #         sets = [form_fragment(ordered_predicates[(split_points[idx - 1] if idx else 0): split_points[idx]],
+    #                               input_predicates, connector) for idx in range(len(split_points))] + [
+    #             form_fragment(ordered_predicates[split_points[-1]:], input_predicates, connector)
+    #         ]
+    #         # negation of conjunction of fragment predicates
+    #         sets += [form_negation_fragment(sets, connector)]
+    #         cost = 0
+    #         for query in queries:
+    #             cost += hdd_based_adapted_cost(str_to_query_tokens(' AND '.join([' '.join(i) for i in query])), sets)
+    #         if best_cost is None or cost < best_cost:
+    #             print('local best', cost, split_points, ordered_predicates, [str(fragment) for fragment in sets])
+    #             best_cost = cost
+    #             best_split = sets
+    #
+    # print('results: ')
+    # print('best cost', best_cost)
+    # print('best split', [str(fragment) for fragment in best_split])
 
-    print('results: ')
-    print('best cost', best_cost)
-    print('best split', [str(fragment) for fragment in best_split])
+    # return best_cost
