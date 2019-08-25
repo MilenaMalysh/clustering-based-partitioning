@@ -6,7 +6,8 @@ from itertools import combinations
 from copy import deepcopy
 
 from clustering_implementations.MockFragment import MockFragment
-from cost_models.hdd_based_adapted import str_to_query_tokens, hdd_based_adapted_cost
+from cost_models.hdd_based_adapted import str_to_query_tokens, hdd_based_adapted_cost, BoolNot, BoolAnd, BoolOr, \
+    pretokenized_converter
 from db.crud.config_queries import drop_table
 from db.crud.evaluation_queries import get_plan_costs, drop_statistics, get_partitions_cost
 from db.crud.partition_queries import create_partitions, merge_two_partitions, split_partition
@@ -33,18 +34,26 @@ class HierarchicalClustering:
 
     def create_mock_fragment(self, coordinate):
         subclusters_check_conditions = []
+        subclusters_tokens = []
         cluster_queries = minimize(coordinate)
         for subcluster_queries in cluster_queries:
             subcluster_check_conditions = []
+            subcluster_tokens = []
             for idx, query in enumerate(subcluster_queries):
                 if query != -1:
+                    subcluster_tokens.append(
+                        self.tokenized_queries[idx] if query else BoolNot(self.tokenized_queries[idx])
+                    )
                     subcluster_check_conditions.append(
                         self.queries[idx] if query else '(NOT ' + self.queries[idx] + ')'
                     )
+            subclusters_tokens.append(BoolAnd(subcluster_tokens))
             subclusters_check_conditions.append('(' + ' AND '.join(subcluster_check_conditions) + ')')
         subclusters_check_conditions_str = ' OR '.join(subclusters_check_conditions)
+        subclusters_check_conditions_tokens = BoolOr(subclusters_tokens)
 
-        return MockFragment(subclusters_check_conditions_str, self.db_connector)
+        return MockFragment(subclusters_check_conditions_str, subclusters_check_conditions_tokens,
+                            self.db_connector)
 
     def get_distance(self, cluster_one, cluster_two):
         linkage_function = getattr(linkage_criteria, self.linkage_criterion)
@@ -117,7 +126,11 @@ class HierarchicalClustering:
                         [self.original_dataset[frozenset({c})]['coordinate'] for c in pair[0].union(pair[1])])
                     cost = 0
                     for query in self.tokenized_queries:
-                        cost += hdd_based_adapted_cost(query, list(self.mock_fragments.values()) + [new_fragment])
+                        cost += hdd_based_adapted_cost(
+                            query,
+                            list(self.mock_fragments.values()) + [new_fragment],
+                            pretokenized_converter
+                        )
 
                     if cost < min_cost or not min_cost:
                         min_cost = cost

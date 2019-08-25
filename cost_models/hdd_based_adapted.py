@@ -1,3 +1,4 @@
+import collections
 from typing import List
 
 import pyeda.inter as pyeda
@@ -18,7 +19,7 @@ cooperators = ["!=", "=", "<", "<=", ">", ">="]
 
 class Op(object):
     def __init__(self, tokens):
-        if len(tokens) == 1:
+        if len(tokens) == 1 and not isinstance(tokens[0],  (Op, Cond, BoolNot)):
             tokens = tokens[0]
         self.items = list(filter(lambda x: isinstance(x, (Op, Cond, BoolNot)), tokens))
 
@@ -151,8 +152,13 @@ class BoolOr(Op):
 
 
 class BoolNot(object):
-    def __init__(self, token):
-        self.val = token[0][1]
+    def __init__(self, tokens):
+        if isinstance(tokens, collections.Sequence):
+            tokens = tokens[0]
+        if isinstance(tokens, collections.Sequence):
+            self.val = next(filter(lambda x: isinstance(x, (Op, Cond, BoolNot)), tokens), None)
+        else:
+            self.val = tokens
 
     def __str__(self):
         return "<Not({})>".format(self.val)
@@ -184,6 +190,10 @@ def str_to_query_tokens(query: str):
 
 def str_to_tokens(fragment):
     return boolExpr.parseString(str(fragment)).asList()[0]
+
+
+def pretokenized_converter(fragment):
+    return fragment.tokens
 
 
 def hdd_based_adapted_cost(query_tokens, fragments, fragments_conventor=str_to_tokens) -> int:

@@ -2,7 +2,7 @@ import itertools
 from collections import defaultdict
 
 from clustering_implementations.MockFragment import MockFragment
-from cost_models.hdd_based_adapted import hdd_based_adapted_cost, str_to_query_tokens
+from cost_models.hdd_based_adapted import hdd_based_adapted_cost, str_to_query_tokens, BoolOr, BoolAnd, BoolNot
 from input_data.queries import queries
 from input_data.temp_input_data import n_clusters
 
@@ -25,11 +25,19 @@ def form_fragment(predicates, input_predicates, connector):
     # ]
     # )
 
-    return MockFragment(' AND '.join(['(' + ' OR '.join(column) + ')' for column in unique_columns.values()]), connector)
+    return MockFragment(
+        ' AND '.join(['(' + ' OR '.join(column) + ')' for column in unique_columns.values()]),
+        BoolAnd(list([BoolOr(column) for column in unique_columns.values()])),
+        connector
+    )
 
 
 def form_negation_fragment(fragments, connector):
-    return MockFragment('NOT (' + ' OR '.join('(' + str(fragment) + ')' for fragment in fragments) + ')', connector)
+    return MockFragment(
+        'NOT (' + ' OR '.join('(' + str(fragment) + ')' for fragment in fragments) + ')',
+        BoolNot(BoolOr(list([fragment.tokens for fragment in fragments]))),
+        connector
+    )
 
 
 def zhang(frequencies, input_predicates, predicate_usage, connector):
