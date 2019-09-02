@@ -196,7 +196,7 @@ def pretokenized_converter(fragment):
     return fragment.tokens
 
 
-def hdd_based_adapted_cost(query_tokens, fragments, fragments_conventor=str_to_tokens) -> int:
+def hdd_based_adapted_cost(query_tokens, fragments, fragments_conventor=pretokenized_converter) -> int:
     """
     Estimate cost of executing the query on given fragmentation. Doesn't check if fragmentation is actually valid (e.g.
     disjoint and complete).

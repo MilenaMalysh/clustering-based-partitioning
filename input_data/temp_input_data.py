@@ -21,7 +21,7 @@ n_queries = 6
 n_predicates_per_query = 3
 n_clusters = 4
 # n_queries > (1 + duplicates_percentage) * math.ceil(n_queries * n_predicates_per_query / n_columns)
-duplicates_percentage = 0.5
+duplicates_percentage = 0.2
 range_columns = {'l_orderkey': [314691, 733478],
                  'l_partkey': [59994, 140010],
                  'l_suppkey': [3007, 7005],

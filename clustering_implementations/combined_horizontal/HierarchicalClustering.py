@@ -1,3 +1,4 @@
+import random
 from random import shuffle
 
 import math
@@ -18,7 +19,7 @@ import clustering_implementations.combined_horizontal.linkage_criteria as linkag
 
 
 class HierarchicalClustering:
-    def __init__(self, points, queries, dimensions, connector, metric, linkage_criterion):
+    def __init__(self, points, queries, dimensions, connector, metric, linkage_criterion, cost_model_usage):
         self.dimensions = dimensions
         self.clusters = set(points.keys())
         self.original_dataset = deepcopy(points)
@@ -31,6 +32,7 @@ class HierarchicalClustering:
         self.mock_fragments = {
             cluster: self.create_mock_fragment([self.original_dataset[frozenset({c})]['coordinate'] for c in cluster]) for cluster in self.clusters
         }
+        self.cost_model_usage = cost_model_usage
 
     def create_mock_fragment(self, coordinate):
         subclusters_check_conditions = []
@@ -67,6 +69,16 @@ class HierarchicalClustering:
                 result.append((dist, (cluster1, cluster2)))
         return result
 
+    def partitioning_scheme_cost(self, fragments):
+        cost = 0
+        for query in self.tokenized_queries:
+            cost += hdd_based_adapted_cost(
+                query,
+                fragments,
+                pretokenized_converter
+            )
+        return cost
+
     @staticmethod
     def build_priority_queue(distance_list):
         heapq.heapify(distance_list)
@@ -77,6 +89,8 @@ class HierarchicalClustering:
         print('-----------------------------------------------------------------------')
         print('HIERARCHICAL CLUSTERING ALGORITHM')
         print('-----------------------------------------------------------------------')
+
+        cost_function_calls = 0  # additional measure
 
 
         # create_partitions(self.db_connector,
@@ -103,49 +117,46 @@ class HierarchicalClustering:
                         else:
                             heapq.heappush(self.heap, (new_dist, new_dist_clusters))
                             break
-                min_cost = 0
-                min_cost_pair_idx = 0
-                for idx, (_, pair) in enumerate(clusters_pairs):
-                    # merge_two_partitions(
-                    #     self.db_connector,
-                    #     table_name + '_copy',
-                    #     (
-                    #         (pair[0], [self.original_dataset[frozenset({cluster})]['coordinate'] for cluster in pair[0]]),
-                    #         (pair[1], [self.original_dataset[frozenset({cluster})]['coordinate'] for cluster in pair[1]])
-                    #     )
-                    # )
-                    # drop_statistics(self.db_connector)
-                    # cost = get_partitions_cost(self.db_connector, table_name + '_copy')
-                    fragment_to_merge_one = self.mock_fragments.pop(pair[0])
-                    fragment_to_merge_two = self.mock_fragments.pop(pair[1])
-                    # mock_fragmets = []
-                    # for cluster in self.clusters:
-                    #     if not (cluster == pair[0] or cluster == pair[1]):
-                    #         mock_fragmets.append(self.create_mock_fragment([self.original_dataset[frozenset({c})]['coordinate'] for c in cluster]))
-                    new_fragment = self.create_mock_fragment(
-                        [self.original_dataset[frozenset({c})]['coordinate'] for c in pair[0].union(pair[1])])
-                    cost = 0
-                    for query in self.tokenized_queries:
-                        cost += hdd_based_adapted_cost(
-                            query,
-                            list(self.mock_fragments.values()) + [new_fragment],
-                            pretokenized_converter
-                        )
+                if self.cost_model_usage:
+                    min_cost = 0
+                    min_cost_pair_idx = 0
+                    for idx, (_, pair) in enumerate(clusters_pairs):
+                        # merge_two_partitions(
+                        #     self.db_connector,
+                        #     table_name + '_copy',
+                        #     (
+                        #         (pair[0], [self.original_dataset[frozenset({cluster})]['coordinate'] for cluster in pair[0]]),
+                        #         (pair[1], [self.original_dataset[frozenset({cluster})]['coordinate'] for cluster in pair[1]])
+                        #     )
+                        # )
+                        # drop_statistics(self.db_connector)
+                        # cost = get_partitions_cost(self.db_connector, table_name + '_copy')
+                        fragment_to_merge_one = self.mock_fragments.pop(pair[0])
+                        fragment_to_merge_two = self.mock_fragments.pop(pair[1])
+                        # mock_fragmets = []
+                        # for cluster in self.clusters:
+                        #     if not (cluster == pair[0] or cluster == pair[1]):
+                        #         mock_fragmets.append(self.create_mock_fragment([self.original_dataset[frozenset({c})]['coordinate'] for c in cluster]))
+                        new_fragment = self.create_mock_fragment(
+                            [self.original_dataset[frozenset({c})]['coordinate'] for c in pair[0].union(pair[1])])
+                        cost = self.partitioning_scheme_cost(list(self.mock_fragments.values()) + [new_fragment])
+                        cost_function_calls += len(self.tokenized_queries)
 
-                    if cost < min_cost or not min_cost:
-                        min_cost = cost
-                        min_cost_pair_idx = idx
+                        if cost < min_cost or not min_cost:
+                            min_cost = cost
+                            min_cost_pair_idx = idx
 
-                    self.mock_fragments[pair[0]] = fragment_to_merge_one
-                    self.mock_fragments[pair[1]] = fragment_to_merge_two
-                    # split_partition(
-                    #     self.db_connector,
-                    #     table_name + '_copy',
-                    #     {
-                    #         pair[0]: [self.original_dataset[frozenset({cluster})]['coordinate'] for cluster in pair[0]],
-                    #         pair[1]: [self.original_dataset[frozenset({cluster})]['coordinate'] for cluster in pair[1]]
-                    #     })
-
+                        self.mock_fragments[pair[0]] = fragment_to_merge_one
+                        self.mock_fragments[pair[1]] = fragment_to_merge_two
+                        # split_partition(
+                        #     self.db_connector,
+                        #     table_name + '_copy',
+                        #     {
+                        #         pair[0]: [self.original_dataset[frozenset({cluster})]['coordinate'] for cluster in pair[0]],
+                        #         pair[1]: [self.original_dataset[frozenset({cluster})]['coordinate'] for cluster in pair[1]]
+                        #     })
+                else:
+                    min_cost_pair_idx = random.randrange(0, len(clusters_pairs))
                 cluster_to_merge_one = clusters_pairs[min_cost_pair_idx][1][0]
                 cluster_to_merge_two = clusters_pairs[min_cost_pair_idx][1][1]
 
@@ -185,7 +196,8 @@ class HierarchicalClustering:
                 #     )
                 # )
                 print('new clusters ', self.clusters)
-                print('new cost ', min_cost)
+                new_cost = self.partitioning_scheme_cost(list(self.mock_fragments.values()))
+                print('new cost ', new_cost)
             # plan_cost = get_partitions_cost(self.db_connector, table_name + '_copy')
             # drop_table(self.db_connector, table_name + '_copy')
             print('***********************************************************************')
@@ -196,4 +208,4 @@ class HierarchicalClustering:
                         [self.original_dataset[frozenset({c})]['coordinate'] for c in cluster])
                 print(mock_fragmet.where_clause)
                 mock_fragmets.append(mock_fragmet)
-            return min_cost
+            return {'cost': new_cost, 'cost_function_calls': cost_function_calls}

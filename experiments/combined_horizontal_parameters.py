@@ -8,32 +8,81 @@ from db.PostgresConnector import PostgresConnector
 
 def test_parameters():
     connector = PostgresConnector()
-    print('######### OPTIMUM #########')
+    print('######### HAC TEST PARAMETERS #########')
     get_optimum(connector)
-    input_files = os.listdir('../input_data/queries')
-    queries_files = [pickle.load(open('../input_data/queries/' + file, 'rb')) for file in input_files]
-    test_linkage_criteria(connector, queries_files)
-    test_metrics(connector, queries_files)
+    directory = '../input_data/queries/zhang/10'
+    input_files = os.listdir(directory)
+    queries_files = [pickle.load(open(directory + '/' + file, 'rb')) for file in input_files]
+    linkage_criteria = [
+        'single_linkage',
+        'complete_linkage',
+        'average_linkage',
+        'centroid_method',
+        'centroid_method_rows_amount'
+    ]
+    similarity_measures = [
+        'euclidean_distance',
+        'squared_euclidean_distance',
+        'manhattan_distance',
+        'maximum_distance'
+    ]
+    cost_based_results = {}
+    random_based_results = {}
+    for idx, queries in enumerate(queries_files):
+        for linkage_criterion in linkage_criteria:
+            for similarity_measure in similarity_measures:
+                print("INPUTS: {}/{}, {}, {}".format(directory, input_files[idx], linkage_criterion, similarity_measure))
+                if not (linkage_criterion + ' + ' + similarity_measure in cost_based_results):
+                    cost_based_results[linkage_criterion + ' + ' + similarity_measure] = {
+                        'cost': 0,
+                        'cost_function_calls': 0
+                    }
+                    random_based_results[linkage_criterion + ' + ' + similarity_measure] = 0
+                cost_based_result = combined_horizontal_from_db(connector, similarity_measure, linkage_criterion, True, queries)
+                cost_based_results[linkage_criterion + ' + ' + similarity_measure]['cost'] += cost_based_result['cost']
+                cost_based_results[linkage_criterion + ' + ' + similarity_measure]['cost_function_calls'] +=\
+                    cost_based_result['cost_function_calls']
+                random_based_results[linkage_criterion + ' + ' + similarity_measure] +=\
+                    combined_horizontal_from_db(connector, similarity_measure, linkage_criterion, False, queries)['cost']
+
+    print('#######################################')
+    print('COST BASED RESULTS')
+    print(cost_based_results)
+    print('RANDOM BASED RESULTS')
+    print(random_based_results)
+    print('#######################################')
 
 
-def test_linkage_criteria(connector, queries_files):
-    print('######### linkage criteria test #########')
-    options = ['single_linkage', 'complete_linkage', 'average_linkage', 'centroid_method', 'centroid_method_rows_amount']
-    costs = defaultdict(int)
-    for option in options:
-        for queries in queries_files:
-            costs[option] += combined_horizontal_from_db(connector, 'euclidean_distance', option, queries)
-    print(costs)
-
-
-def test_metrics(connector, queries_files):
-    print('######### metrics test #########')
-    options = ['euclidean_distance', 'squared_euclidean_distance', 'manhattan_distance', 'maximum_distance']
-    costs = defaultdict(int)
-    for option in options:
-        for queries in queries_files:
-            costs[option] += combined_horizontal_from_db(connector, option, 'centroid_method_rows_amount', queries)
-    print(costs)
+# def test_linkage_criteria(connector, queries_files):
+#     print('######### linkage criteria test #########')
+#     options = ['single_linkage', 'complete_linkage', 'average_linkage', 'centroid_method', 'centroid_method_rows_amount']
+#     results = {}
+#     for option in options:
+#         results[option] = {
+#             'cost': 0,
+#             'cost_function_calls': 0
+#         }
+#         for queries in queries_files:
+#             result = combined_horizontal_from_db(connector, 'euclidean_distance', option, queries)
+#             results[option]['cost'] += result['cost']
+#             results[option]['cost_function_calls'] += result['cost_function_calls']
+#     print(results)
+#
+#
+# def test_metrics(connector, queries_files):
+#     print('######### metrics test #########')
+#     options = ['euclidean_distance', 'squared_euclidean_distance', 'manhattan_distance', 'maximum_distance']
+#     results = {}
+#     for option in options:
+#         results[option] = {
+#             'cost': 0,
+#             'cost_function_calls': 0
+#         }
+#         for queries in queries_files:
+#             result = combined_horizontal_from_db(connector, option, 'centroid_method_rows_amount', queries)
+#             results[option]['cost'] += result['cost']
+#             results[option]['cost_function_calls'] += result['cost_function_calls']
+#     print(results)
 
 
 def get_optimum(connector):

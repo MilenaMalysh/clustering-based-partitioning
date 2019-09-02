@@ -21,7 +21,7 @@ def queries_to_coordinates(queries_untouched):
 '''
 
 
-def combined_horizontal_from_db(connector, metric, linkage_criterion, queries):
+def combined_horizontal_from_db(connector, metric, linkage_criterion, cost_model_usage, queries):
     distinct_clusters = {}
     new_cluster_idx = 0
 
@@ -40,7 +40,8 @@ def combined_horizontal_from_db(connector, metric, linkage_criterion, queries):
         len(queries),
         connector,
         metric,
-        linkage_criterion
+        linkage_criterion,
+        cost_model_usage
     )
 
     return hc.hierarchical_clustering()

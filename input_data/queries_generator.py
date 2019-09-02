@@ -9,6 +9,8 @@ from db.PostgresConnector import PostgresConnector
 from db.crud.select_queries import select_ordered_values, select_count, select_column_type
 from input_data.temp_input_data import range_columns, n_rows, n_queries, n_predicates_per_query, duplicates_percentage
 
+directory = os.environ['QUERIES_DIRECTORY'] + str(int(duplicates_percentage * 100))
+
 
 def generate_attributes_distribution(connector):
     """
@@ -85,12 +87,12 @@ def generate_queries(connector):
             return
 
     # write to a file
-    os.makedirs('queries', exist_ok=True)
-    files_in_directory = os.listdir('queries')
+    os.makedirs(directory, exist_ok=True)
+    files_in_directory = os.listdir(directory)
     file_to_create = 0
     if files_in_directory:
         file_to_create = max([int(file_name) for file_name in files_in_directory]) + 1
-    with open('queries/' + str(file_to_create), 'wb') as fp:
+    with open(directory + '/' + str(file_to_create), 'wb') as fp:
         pickle.dump(queries, fp)
 
 if __name__ == "__main__":

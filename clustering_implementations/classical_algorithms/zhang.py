@@ -2,8 +2,8 @@ import itertools
 from collections import defaultdict
 
 from clustering_implementations.MockFragment import MockFragment
-from cost_models.hdd_based_adapted import hdd_based_adapted_cost, str_to_query_tokens, BoolOr, BoolAnd, BoolNot
-from input_data.queries import queries
+from cost_models.hdd_based_adapted import hdd_based_adapted_cost, str_to_query_tokens, BoolOr, BoolAnd, BoolNot, Cond, \
+    pretokenized_converter
 from input_data.temp_input_data import n_clusters
 
 
@@ -17,7 +17,7 @@ def print_matrix(matrix):
 def form_fragment(predicates, input_predicates, connector):
     unique_columns = defaultdict(list)
     for predicate in predicates:
-        unique_columns[input_predicates[predicate][0]].append('{} {} {}'.format(*input_predicates[predicate]))
+        unique_columns[input_predicates[predicate][0]].append(input_predicates[predicate])
 
     # [
     #     MockFragment("l_linenumber > 5"),
@@ -26,8 +26,8 @@ def form_fragment(predicates, input_predicates, connector):
     # )
 
     return MockFragment(
-        ' AND '.join(['(' + ' OR '.join(column) + ')' for column in unique_columns.values()]),
-        BoolAnd(list([BoolOr(column) for column in unique_columns.values()])),
+        ' AND '.join(['(' + ' OR '.join(['{} {} {}'.format(*c) for c in column]) + ')' for column in unique_columns.values()]),
+        BoolAnd(list([BoolOr(list(Cond(c) for c in column)) for column in unique_columns.values()])),
         connector
     )
 
@@ -40,7 +40,7 @@ def form_negation_fragment(fragments, connector):
     )
 
 
-def zhang(frequencies, input_predicates, predicate_usage, connector):
+def zhang(frequencies, input_predicates, predicate_usage, queries, connector):
     print('-----------------------------------------------------------------------')
     print('ZHANG ALGORITHM')
     print('-----------------------------------------------------------------------')
@@ -48,6 +48,8 @@ def zhang(frequencies, input_predicates, predicate_usage, connector):
     print('frequencies: ', frequencies)
     print('predicates usage: ')
     print_matrix(predicate_usage)
+
+    cost_model_calls = 0 # additional measure
 
     print('***********************************************************************')
     print('STEP 1: predicates usage matrix generation')
@@ -154,6 +156,8 @@ def zhang(frequencies, input_predicates, predicate_usage, connector):
 
     print('***********************************************************************')
     print('STEP 3: slip - non - overlap')
+    tokenized_queries = [str_to_query_tokens('(' + ' AND '.join([' '.join([str(i) for i in q]) for q in query]) + ')')
+                         for query in queries]
     # # slip - non - overlap by navathe / binary partitioning
     # best_split = []
     # best_cost = None
@@ -182,29 +186,36 @@ def zhang(frequencies, input_predicates, predicate_usage, connector):
     #             best_cost = cost
     #             best_split = [ordered_predicates[:split_point], ordered_predicates[split_point:]]
 
-    # # slip - non - overlap with custom cost function & m-random points
-    # best_split = []
-    # best_cost = None
-    # for order in range(len(ordered_predicates)):
-    #     ordered_predicates += [ordered_predicates.pop(0)]
-    #     print('ordered_predicates', ordered_predicates)
-    #     for split_points in itertools.combinations(range(1, len(input_predicates)), n_clusters - 2):
-    #         sets = [form_fragment(ordered_predicates[(split_points[idx - 1] if idx else 0): split_points[idx]],
-    #                               input_predicates, connector) for idx in range(len(split_points))] + [
-    #             form_fragment(ordered_predicates[split_points[-1]:], input_predicates, connector)
-    #         ]
-    #         # negation of conjunction of fragment predicates
-    #         sets += [form_negation_fragment(sets, connector)]
-    #         cost = 0
-    #         for query in queries:
-    #             cost += hdd_based_adapted_cost(str_to_query_tokens(' AND '.join([' '.join(i) for i in query])), sets)
-    #         if best_cost is None or cost < best_cost:
-    #             print('local best', cost, split_points, ordered_predicates, [str(fragment) for fragment in sets])
-    #             best_cost = cost
-    #             best_split = sets
-    #
-    # print('results: ')
-    # print('best cost', best_cost)
-    # print('best split', [str(fragment) for fragment in best_split])
+    # slip - non - overlap with custom cost function & m-random points
+    best_split = []
+    best_cost = None
 
-    # return best_cost
+    # version with shifts -- too slow
+
+    for order in range(len(ordered_predicates)):
+        ordered_predicates += [ordered_predicates.pop(0)]
+        print('ordered_predicates', ordered_predicates)
+        for split_points in itertools.combinations(range(1, len(input_predicates)), n_clusters - 2):
+            sets = [form_fragment(ordered_predicates[(split_points[idx - 1] if idx else 0): split_points[idx]],
+                                  input_predicates, connector) for idx in range(len(split_points))] + [
+                form_fragment(ordered_predicates[split_points[-1]:], input_predicates, connector)
+            ]
+            # negation of conjunction of fragment predicates
+            sets += [form_negation_fragment(sets, connector)]
+            cost = 0
+            for query in tokenized_queries:
+                cost_model_calls += 1
+                cost += hdd_based_adapted_cost(query, sets, pretokenized_converter)
+            if best_cost is None or cost < best_cost:
+                print('local best', cost, split_points, ordered_predicates, [str(fragment) for fragment in sets])
+                best_cost = cost
+                best_split = sets
+
+    print('results: ')
+    print('best cost', best_cost)
+    print('best split', [str(fragment) for fragment in best_split])
+
+    return {
+        'cost': best_cost,
+        'cost_model_calls': cost_model_calls
+    }
