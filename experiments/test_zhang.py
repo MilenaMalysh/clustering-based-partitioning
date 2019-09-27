@@ -110,7 +110,7 @@ def test_my_values():
 
 def test_different_duplicates_percentage():
     print('ZHANG ALGORITHM <DIFFERENT DUPLICATES PERCENTAGE TESTS>')
-    percentages = [10, 20, 50]
+    percentages = [10, 20, 30, 40, 50, 60, 70]
     results = {}
     for percentage in percentages:
         print("DUPLICATES PERCENTAGE = " + str(percentage))
@@ -133,6 +133,8 @@ def test_different_duplicates_percentage():
             'cost model calls': cost_model_calls,
             'cost': cost
         }
+        with open(directory + '\../result_' + str(percentage) + '.txt', 'w') as f:
+            print(results, file=f)
     print('ZHANG ALGORITHM <DIFFERENT DUPLICATES PERCENTAGE TESTS> RESULTS: ', results)
 
 

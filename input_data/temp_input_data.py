@@ -20,8 +20,9 @@ n_rows = 1048575
 n_queries = 6
 n_predicates_per_query = 3
 n_clusters = 4
-# n_queries > (1 + duplicates_percentage) * math.ceil(n_queries * n_predicates_per_query / n_columns)
-duplicates_percentage = 0.2
+# n_queries > (1 + duplicates_percentage) * math.ceil(n_queries * n_predicates_per_query / len(range_columns))
+# + min number of unique predicates in number of predicates per query => in our case max duplicates_percentage = 1 - 3 / 3 * 6 = 5/6 = 0.83
+duplicates_percentage = 0.1
 range_columns = {'l_orderkey': [314691, 733478],
                  'l_partkey': [59994, 140010],
                  'l_suppkey': [3007, 7005],

@@ -117,7 +117,7 @@ class HierarchicalClustering:
                         else:
                             heapq.heappush(self.heap, (new_dist, new_dist_clusters))
                             break
-                if self.cost_model_usage:
+                if self.cost_model_usage and (len(clusters_pairs) != 1):
                     min_cost = 0
                     min_cost_pair_idx = 0
                     for idx, (_, pair) in enumerate(clusters_pairs):

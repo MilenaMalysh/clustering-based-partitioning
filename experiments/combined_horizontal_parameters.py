@@ -18,32 +18,47 @@ def test_parameters():
         'complete_linkage',
         'average_linkage',
         'centroid_method',
-        'centroid_method_rows_amount'
+        'penalty_based'
     ]
     similarity_measures = [
         'euclidean_distance',
         'squared_euclidean_distance',
         'manhattan_distance',
-        'maximum_distance'
+        'maximum_distance',
+        'penalty_based'
     ]
     cost_based_results = {}
     random_based_results = {}
     for idx, queries in enumerate(queries_files):
         for linkage_criterion in linkage_criteria:
             for similarity_measure in similarity_measures:
+                if linkage_criterion == 'centroid_method' and similarity_measure != 'euclidean_distance':
+                    continue
+                if (similarity_measure == 'penalty_based') != (linkage_criterion == 'penalty_based'):
+                    continue
                 print("INPUTS: {}/{}, {}, {}".format(directory, input_files[idx], linkage_criterion, similarity_measure))
                 if not (linkage_criterion + ' + ' + similarity_measure in cost_based_results):
                     cost_based_results[linkage_criterion + ' + ' + similarity_measure] = {
                         'cost': 0,
                         'cost_function_calls': 0
                     }
-                    random_based_results[linkage_criterion + ' + ' + similarity_measure] = 0
+                    random_based_results[linkage_criterion + ' + ' + similarity_measure] = {
+                        'cost': 0,
+                        'cost_function_calls': 0
+                    }
                 cost_based_result = combined_horizontal_from_db(connector, similarity_measure, linkage_criterion, True, queries)
                 cost_based_results[linkage_criterion + ' + ' + similarity_measure]['cost'] += cost_based_result['cost']
                 cost_based_results[linkage_criterion + ' + ' + similarity_measure]['cost_function_calls'] +=\
                     cost_based_result['cost_function_calls']
-                random_based_results[linkage_criterion + ' + ' + similarity_measure] +=\
+                random_based_results[linkage_criterion + ' + ' + similarity_measure]['cost'] +=\
                     combined_horizontal_from_db(connector, similarity_measure, linkage_criterion, False, queries)['cost']
+                random_based_results[linkage_criterion + ' + ' + similarity_measure]['cost_function_calls'] += \
+                    combined_horizontal_from_db(connector, similarity_measure, linkage_criterion, False, queries)['cost_function_calls']
+        with open(directory + '/result_' + str(idx) + '.txt', 'w') as f:
+            print('COST BASED RESULTS', file=f)
+            print(cost_based_results, file=f)
+            print('RANDOM BASED RESULTS', file=f)
+            print(random_based_results, file=f)
 
     print('#######################################')
     print('COST BASED RESULTS')
@@ -52,6 +67,37 @@ def test_parameters():
     print(random_based_results)
     print('#######################################')
 
+
+def test_my_similarity():
+    connector = PostgresConnector()
+    print('######### HAC TEST MY LINKAGE CRITERIA #########')
+    get_optimum(connector)
+    directory = '../input_data/queries/zhang/10'
+    input_files = os.listdir(directory)
+    queries_files = [pickle.load(open(directory + '/' + file, 'rb')) for file in input_files]
+    cost_based_results = {}
+    random_based_results = {}
+    for idx, queries in enumerate(queries_files):
+        print("INPUTS: {}/{}".format(directory, input_files[idx]))
+        if not ('penalty_based' in cost_based_results):
+            cost_based_results['penalty_based'] = {
+                'cost': 0,
+                'cost_function_calls': 0
+            }
+            random_based_results['penalty_based'] = 0
+        cost_based_result = combined_horizontal_from_db(connector, '', 'penalty_based', True, queries)
+        cost_based_results['penalty_based']['cost'] += cost_based_result['cost']
+        cost_based_results['penalty_based']['cost_function_calls'] += \
+            cost_based_result['cost_function_calls']
+        random_based_results['penalty_based'] += \
+            combined_horizontal_from_db(connector, '', 'penalty_based', False, queries)['cost']
+
+    print('#######################################')
+    print('COST BASED RESULTS')
+    print(cost_based_results)
+    print('RANDOM BASED RESULTS')
+    print(random_based_results)
+    print('#######################################')
 
 # def test_linkage_criteria(connector, queries_files):
 #     print('######### linkage criteria test #########')
@@ -90,4 +136,4 @@ def get_optimum(connector):
 
 
 if __name__ == "__main__":
-    test_parameters()
+    test_my_similarity()

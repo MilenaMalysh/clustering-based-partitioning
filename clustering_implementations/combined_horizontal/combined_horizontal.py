@@ -4,7 +4,7 @@ from clustering_implementations.combined_horizontal.HierarchicalClustering impor
 from cost_models.hdd_based_adapted import str_to_query_tokens
 from db.crud.config_queries import add_column, drop_column
 from db.crud.select_queries import select_count
-from input_data.temp_input_data import n_rows, n_queries, n_columns
+from input_data.temp_input_data import n_rows, n_queries
 
 
 def queries_to_coordinates(queries_untouched):
