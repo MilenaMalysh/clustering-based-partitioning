@@ -137,7 +137,6 @@ def test_different_duplicates_percentage():
             print(results, file=f)
     print('ZHANG ALGORITHM <DIFFERENT DUPLICATES PERCENTAGE TESTS> RESULTS: ', results)
 
-
 if __name__ == "__main__":
     print('-----------------------------------------------------------------------')
     print('ZHANG ALGORITHM TESTS')

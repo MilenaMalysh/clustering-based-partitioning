@@ -17,13 +17,13 @@ def generate_attributes_distribution(connector):
     This function is used only once to generate 30% - 80% intervals of distribution for each attribute
     """
 
-    # intervals = {}
-    # for column in range_columns:
-    #     column_values = select_ordered_values(connector, column)
-    #     min_value = column_values[math.floor(0.3 * n_rows)][0]
-    #     max_value = column_values[math.floor(0.7 * n_rows)][0]
-    #     intervals[column] = [min_value, max_value]
-    # print(intervals)
+    intervals = {}
+    for column in range_columns:
+        column_values = select_ordered_values(connector, column)
+        min_value = column_values[math.floor(0.3 * n_rows)][0]
+        max_value = column_values[math.floor(0.7 * n_rows)][0]
+        intervals[column] = [min_value, max_value]
+    print(intervals)
 
     # for column, ranges in range_columns.items():
     #     if isinstance(ranges[0], datetime.date):

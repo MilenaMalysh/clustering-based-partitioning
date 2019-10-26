@@ -24,23 +24,23 @@ def zhang_vs_clustering():
         queries_files = [pickle.load(open(directory + '/' + file, 'rb')) for file in input_files]
         for idx, queries_file in enumerate(queries_files):
             print("INPUT FILE = " + directory + '/' + str(idx))
-            # # zhang
-            # predicate_usage = [[] for _ in queries_file]
-            # predicates = list(set().union(*queries_file))
-            # for predicate_idx, predicate in enumerate(predicates):
-            #     for query_idx, query in enumerate(queries_file):
-            #         if predicate in query:
-            #             predicate_usage[query_idx].append(predicate_idx)
-            # zhang_result = zhang([1] * len(queries_file), predicates, predicate_usage, queries_file, PostgresConnector())
-            # results[percentage]['zhang']['cost'] += zhang_result['cost']
-            # results[percentage]['zhang']['cost_function_calls'] += zhang_result['cost_model_calls']
-            # tests_count +=1
+            # zhang
+            predicate_usage = [[] for _ in queries_file]
+            predicates = list(set().union(*queries_file))
+            for predicate_idx, predicate in enumerate(predicates):
+                for query_idx, query in enumerate(queries_file):
+                    if predicate in query:
+                        predicate_usage[query_idx].append(predicate_idx)
+            zhang_result = zhang([1] * len(queries_file), predicates, predicate_usage, queries_file, PostgresConnector())
+            results[percentage]['zhang']['cost'] += zhang_result['cost']
+            results[percentage]['zhang']['cost_function_calls'] += zhang_result['cost_model_calls']
+            tests_count +=1
 
             # clustering
             for setting in settings:
                 if setting == 'zhang':
                     continue
-                clustering_results = combined_horizontal_from_db(connector, setting[1], setting[0], True, queries_file)
+                clustering_results = combined_horizontal_from_db(connector, setting[1], setting[0], True, queries_file, False)
                 tests_count += 1
                 print("TEST COUNT = " + str(tests_count))
                 results[percentage][setting]['cost'] += clustering_results['cost']

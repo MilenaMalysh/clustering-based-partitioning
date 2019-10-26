@@ -43,17 +43,14 @@ def test_parameters():
                         'cost_function_calls': 0
                     }
                     random_based_results[linkage_criterion + ' + ' + similarity_measure] = {
-                        'cost': 0,
-                        'cost_function_calls': 0
+                        'cost': 0
                     }
-                cost_based_result = combined_horizontal_from_db(connector, similarity_measure, linkage_criterion, True, queries)
+                cost_based_result = combined_horizontal_from_db(connector, similarity_measure, linkage_criterion, True, queries, False)
                 cost_based_results[linkage_criterion + ' + ' + similarity_measure]['cost'] += cost_based_result['cost']
                 cost_based_results[linkage_criterion + ' + ' + similarity_measure]['cost_function_calls'] +=\
                     cost_based_result['cost_function_calls']
-                random_based_results[linkage_criterion + ' + ' + similarity_measure]['cost'] +=\
-                    combined_horizontal_from_db(connector, similarity_measure, linkage_criterion, False, queries)['cost']
-                random_based_results[linkage_criterion + ' + ' + similarity_measure]['cost_function_calls'] += \
-                    combined_horizontal_from_db(connector, similarity_measure, linkage_criterion, False, queries)['cost_function_calls']
+                # random_based_result = combined_horizontal_from_db(connector, similarity_measure, linkage_criterion, False, queries, False)
+                # random_based_results[linkage_criterion + ' + ' + similarity_measure]['cost'] +=random_based_result['cost']
         with open(directory + '/result_' + str(idx) + '.txt', 'w') as f:
             print('COST BASED RESULTS', file=f)
             print(cost_based_results, file=f)
@@ -85,12 +82,12 @@ def test_my_similarity():
                 'cost_function_calls': 0
             }
             random_based_results['penalty_based'] = 0
-        cost_based_result = combined_horizontal_from_db(connector, '', 'penalty_based', True, queries)
+        cost_based_result = combined_horizontal_from_db(connector, '', 'penalty_based', True, queries, False)
         cost_based_results['penalty_based']['cost'] += cost_based_result['cost']
         cost_based_results['penalty_based']['cost_function_calls'] += \
             cost_based_result['cost_function_calls']
         random_based_results['penalty_based'] += \
-            combined_horizontal_from_db(connector, '', 'penalty_based', False, queries)['cost']
+            combined_horizontal_from_db(connector, '', 'penalty_based', False, queries, False)['cost']
 
     print('#######################################')
     print('COST BASED RESULTS')
@@ -98,6 +95,30 @@ def test_my_similarity():
     print('RANDOM BASED RESULTS')
     print(random_based_results)
     print('#######################################')
+
+
+def test_profiler():
+    connector = PostgresConnector()
+    print('######### HAC TEST PROFILER SINGLE LINKAGE & EUCLIDEAN DISTANCE #########')
+    get_optimum(connector)
+    directory = '../input_data/queries/zhang/10'
+    input_files = os.listdir(directory)
+    queries = pickle.load(open(directory + '/' + input_files[0], 'rb'))
+    combined_horizontal_from_db(connector, 'euclidean_distance', 'single_linkage', True, queries, False)
+
+
+def amount_of_atomic_fragments():
+    connector = PostgresConnector()
+    percentages = [10, 20, 30, 40, 50, 60, 70]
+    results = {percentage: 0 for percentage in percentages}
+    for percentage in percentages:
+        print("DUPLICATES PERCENTAGE = " + str(percentage))
+        directory = '../input_data/queries/zhang/' + str(percentage)
+        input_files = os.listdir(directory)
+        queries_files = [pickle.load(open(directory + '/' + file, 'rb')) for file in input_files]
+        for idx, queries_file in enumerate(queries_files):
+            results[percentage] += combined_horizontal_from_db(connector, None, None, True, queries_file, True)
+    print(results)
 
 # def test_linkage_criteria(connector, queries_files):
 #     print('######### linkage criteria test #########')
@@ -136,4 +157,4 @@ def get_optimum(connector):
 
 
 if __name__ == "__main__":
-    test_my_similarity()
+    test_profiler()

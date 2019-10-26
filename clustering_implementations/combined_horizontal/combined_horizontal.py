@@ -21,7 +21,7 @@ def queries_to_coordinates(queries_untouched):
 '''
 
 
-def combined_horizontal_from_db(connector, metric, linkage_criterion, cost_model_usage, queries):
+def combined_horizontal_from_db(connector, metric, linkage_criterion, cost_model_usage, queries, count_fragments):
     distinct_clusters = {}
     new_cluster_idx = 0
 
@@ -33,7 +33,8 @@ def combined_horizontal_from_db(connector, metric, linkage_criterion, cost_model
         if rows_amount:
             distinct_clusters[frozenset({new_cluster_idx})] = {'coordinate': list(qs), 'rows_amount': rows_amount}
             new_cluster_idx += 1
-
+    if count_fragments:
+        return new_cluster_idx
     hc = HierarchicalClustering(
         distinct_clusters,
         str_queries,
